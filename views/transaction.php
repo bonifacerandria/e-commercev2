@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>BMOI Transaction</title>
+    <title>BMOI e-commerce</title>
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 
