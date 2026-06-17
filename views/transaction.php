@@ -15,11 +15,11 @@
     </div>
 
     <table>
-        <tr><td>ID Commande</td><td><?= htmlspecialchars($data['orderID'] ?? '') ?></td></tr>
-        <tr><td>Commerçant</td><td><?= htmlspecialchars($data['merchant'] ?? '') ?></td></tr>
-        <tr><td>Montant</td><td><?= htmlspecialchars($data['amount'] ?? '') ?></td></tr>
-        <tr><td>Devise</td><td><?= htmlspecialchars($data['currency'] ?? '') ?></td></tr>
-        <tr><td>Carte</td><td><?= htmlspecialchars($data['card'] ?? '') ?></td></tr>
+        <tr><td>ID Commande:</td><td><?= htmlspecialchars($data['orderID'] ?? '') ?></td></tr>
+        <tr><td>Commerçant:</td><td><?= htmlspecialchars($data['merchant'] ?? '') ?></td></tr>
+        <tr><td>Montant:</td><td><?= htmlspecialchars($data['amount'] ?? '') ?></td></tr>
+        <tr><td>Devise:</td><td><?= htmlspecialchars($data['currency'] ?? '') ?></td></tr>
+        <tr><td>Carte:</td><td><?= htmlspecialchars($data['card'] ?? '') ?></td></tr>
         <tr><td>Date</td><td><?= htmlspecialchars($data['date'] ?? '') ?></td></tr>
     </table>
 
