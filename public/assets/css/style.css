@@ -1,0 +1,51 @@
+body {
+    font-family: Arial;
+    background: #f4f4f9;
+}
+
+.container {
+    width: 800px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.header {
+    text-align: center;
+    color: #5b2c83; /* violet BMOI */
+}
+
+.logo {
+    width: 120px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.btn-orange {
+    background: #f57c00;
+    color: white;
+    padding: 10px;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.btn-purple {
+    background: #5b2c83;
+    color: white;
+    padding: 10px;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+}
