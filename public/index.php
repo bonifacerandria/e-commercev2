@@ -1,57 +1,45 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ⚠️ En production, tu peux laisser display_errors à 0
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
 
-// ✅ IMPORTS TOUJOURS EN HAUT
 use App\Controller\TransactionController;
 use App\Service\PdfService;
 use App\Service\MailService;
 
-echo "<pre>";
-echo "=== DEBUG E-COMMERCE ===\n";
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../src/Controller/TransactionController.php';
 
 try {
 
-    require_once __DIR__ . '/../vendor/autoload.php';
-    require_once __DIR__ . '/../bootstrap.php';
-
-    require_once __DIR__ . '/../src/Controller/TransactionController.php';
-
     $controller = new TransactionController();
-
-    echo "[OK] Controller OK\n";
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $action = $_POST['action'] ?? null;
 
-        echo "Action: $action\n";
-
         // =======================
-        // PDF
+        // PDF GENERATION
         // =======================
         if ($action === 'download_pdf') {
-
-            echo "[PDF] Generation...\n";
 
             $pdf = new PdfService();
 
             $html = "
-                <h1>FACTURE TEST</h1>
-                <pre>" . print_r($_POST, true) . "</pre>
+                <h1>FACTURE</h1>
             ";
 
             $pdf->generate($html, "facture.pdf", true);
+            exit;
         }
 
         // =======================
-        // EMAIL
+        // SEND EMAIL
         // =======================
         if ($action === 'send_email') {
-
-            echo "[EMAIL] Processing...\n";
 
             $email = $_POST['email'] ?? '';
 
@@ -62,8 +50,7 @@ try {
             $pdf = new PdfService();
 
             $html = "
-                <h1>FACTURE EMAIL</h1>
-                <pre>" . print_r($_POST, true) . "</pre>
+                <h1>FACTURE</h1>
             ";
 
             $pdfBinary = $pdf->generate($html, "facture.pdf", false);
@@ -71,16 +58,19 @@ try {
             $mail = new MailService();
             $mail->send($email, $pdfBinary);
 
-            echo "[OK] Email envoyé\n";
+            echo "Email envoyé avec succès";
+            exit;
         }
     }
 
-    echo "\n[PAGE LOAD]\n";
     $controller->show();
 
 } catch (Throwable $e) {
 
-    echo "\n[ERROR]\n";
-    echo $e->getMessage();
-    echo "\n" . $e->getFile() . ":" . $e->getLine();
+    http_response_code(500);
+
+    echo "Erreur système";
+
+    // Optionnel (log serveur)
+    error_log($e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
 }
