@@ -7,48 +7,67 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService
 {
-    public function send(string $to, string $filePath): void
+    public function send(string $to, ?string $filePath = null): void
     {
         $mail = new PHPMailer(true);
 
         try {
 
             // =====================
+            // DEBUG (désactivé en prod)
+            // =====================
+            $mail->SMTPDebug = 0;
+            $mail->Debugoutput = 'error_log';
+
+            // =====================
             // SMTP CONFIG
             // =====================
             $mail->isSMTP();
-            $mail->Host = $_ENV['SMTP_HOST'] ?? '';
+            $mail->Host = getenv('SMTP_HOST');
             $mail->SMTPAuth = true;
-            $mail->Username = $_ENV['SMTP_USER'] ?? '';
-            $mail->Password = $_ENV['SMTP_PASS'] ?? '';
+            $mail->Username = getenv('SMTP_USER');
+            $mail->Password = getenv('SMTP_PASS');
+            $mail->Port = (int) getenv('SMTP_PORT');
+
+            // Sécurité SMTP (recommandé pour SMTP2GO)
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = $_ENV['SMTP_PORT'] ?? 587;
+
+            // Charset
+            $mail->CharSet = 'UTF-8';
 
             // =====================
-            // SENDER
+            // EXPÉDITEUR
             // =====================
             $mail->setFrom(
-                $_ENV['SMTP_FROM'] ?? 'no-reply@example.com',
-                $_ENV['SMTP_NAME'] ?? 'BMOI System'
+                getenv('SMTP_FROM') ?: getenv('SMTP_USER'),
+                getenv('SMTP_NAME') ?: 'BMOI E-Commerce'
             );
 
+            // =====================
+            // DESTINATAIRE
+            // =====================
             $mail->addAddress($to);
 
             // =====================
-            // CONTENT
+            // CONTENU
             // =====================
             $mail->isHTML(false);
             $mail->Subject = "Reçu de transaction BMOI";
             $mail->Body = "Veuillez trouver votre reçu en pièce jointe.";
 
             // =====================
-            // ATTACHMENT
+            // PIÈCE JOINTE (optionnelle)
             // =====================
             if (!empty($filePath) && file_exists($filePath)) {
                 $mail->addAttachment($filePath);
             }
 
-            $mail->send();
+            // =====================
+            // ENVOI
+            // =====================
+            if (!$mail->send()) {
+                throw new Exception("Erreur SMTP: " . $mail->ErrorInfo);
+            }
 
         } catch (Exception $e) {
             throw new \Exception("Erreur envoi email: " . $e->getMessage());
