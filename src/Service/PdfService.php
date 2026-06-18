@@ -11,7 +11,7 @@ class PdfService
     {
         $options = new Options();
         $options->set('isRemoteEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isHtml5ParserEnabled', false);
         $options->set('isPhpEnabled', false);
         $options->set('defaultFont', 'Arial');
 
