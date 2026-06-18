@@ -1,7 +1,9 @@
 <?php
 
-require_once __DIR__ . '/../Service/PdfService.php';
-require_once __DIR__ . '/../Service/MailService.php';
+namespace App\Controller;
+
+use App\Service\PdfService;
+use App\Service\MailService;
 
 class TransactionController
 {
@@ -16,7 +18,7 @@ class TransactionController
         $data = $this->getTransactionData();
 
         $pdfService = new PdfService();
-        $pdfService->generate($data);
+        $pdfService->generate($this->formatHtml($data), "facture.pdf", true);
     }
 
     public function sendEmail()
@@ -26,17 +28,16 @@ class TransactionController
         $data = $this->getTransactionData();
 
         $pdfService = new PdfService();
-        $filePath = $pdfService->generate($data, true);
+        $file = $pdfService->generate($this->formatHtml($data), "facture.pdf", false);
 
         $mailService = new MailService();
-        $mailService->send($email, $filePath);
+        $mailService->send($email, $file);
 
         echo "Email envoyé avec succès";
     }
 
     private function getTransactionData()
     {
-        // sécurisation basique
         return [
             "orderID" => $_POST['orderID'] ?? '',
             "merchant" => $_POST['outletAcronym'] ?? '',
@@ -45,5 +46,13 @@ class TransactionController
             "card" => $_POST['paddedCardNb'] ?? '',
             "date" => date('Y-m-d H:i:s')
         ];
+    }
+
+    private function formatHtml($data)
+    {
+        return "
+            <h1>FACTURE</h1>
+            <pre>" . print_r($data, true) . "</pre>
+        ";
     }
 }
