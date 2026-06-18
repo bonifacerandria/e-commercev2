@@ -7,16 +7,6 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailService
 {
-    /**
-     * Helper pour lire les variables d'environnement de façon safe
-     */
-    private function env(string $key, ?string $default = null): ?string
-    {
-        $value = getenv($key);
-
-        return (!empty($value)) ? $value : $default;
-    }
-
     public function send(string $to, ?string $filePath = null): void
     {
         $mail = new PHPMailer(true);
@@ -24,7 +14,7 @@ class MailService
         try {
 
             // =====================
-            // DEBUG (désactivé prod)
+            // DEBUG
             // =====================
             $mail->SMTPDebug = 0;
             $mail->Debugoutput = 'error_log';
@@ -32,13 +22,15 @@ class MailService
             // =====================
             // SMTP CONFIG
             // =====================
-            $host = $this->env('SMTP_HOST');
-            $user = $this->env('SMTP_USER');
-            $pass = $this->env('SMTP_PASS');
-            $port = (int) $this->env('SMTP_PORT', '587');
+            $host = $_ENV['SMTP_HOST'] ?? '';
+            $user = $_ENV['SMTP_USER'] ?? '';
+            $pass = $_ENV['SMTP_PASS'] ?? '';
+            $port = (int) ($_ENV['SMTP_PORT'] ?? 587);
 
             if (empty($host) || empty($user) || empty($pass)) {
-                throw new \Exception("SMTP configuration missing (.env)");
+                throw new \Exception(
+                    "SMTP configuration missing : HOST={$host}, USER={$user}"
+                );
             }
 
             $mail->isSMTP();
@@ -47,21 +39,17 @@ class MailService
             $mail->Username = $user;
             $mail->Password = $pass;
             $mail->Port = $port;
-
-            // Sécurité SMTP (SMTP2GO / standard)
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-
-            // Charset
             $mail->CharSet = 'UTF-8';
 
             // =====================
-            // EXPÉDITEUR (FIX ERREUR PRINCIPALE)
+            // EXPEDITEUR
             // =====================
-            $fromEmail = $this->env('SMTP_FROM', $user);
-            $fromName  = $this->env('SMTP_NAME', 'System');
+            $fromEmail = $_ENV['SMTP_FROM'] ?? $user;
+            $fromName  = $_ENV['SMTP_NAME'] ?? 'BMOI System';
 
             if (empty($fromEmail)) {
-                throw new \Exception("SMTP_FROM is missing or invalid");
+                throw new \Exception("SMTP_FROM missing in .env");
             }
 
             $mail->setFrom($fromEmail, $fromName);
@@ -79,11 +67,11 @@ class MailService
             // CONTENU
             // =====================
             $mail->isHTML(false);
-            $mail->Subject = "Reçu de transaction BMOI";
-            $mail->Body = "Veuillez trouver votre reçu en pièce jointe.";
+            $mail->Subject = 'Reçu de transaction BMOI';
+            $mail->Body = 'Veuillez trouver votre reçu en pièce jointe.';
 
             // =====================
-            // PIÈCE JOINTE (optionnelle)
+            // PIECE JOINTE
             // =====================
             if (!empty($filePath) && file_exists($filePath)) {
                 $mail->addAttachment($filePath);
@@ -92,12 +80,12 @@ class MailService
             // =====================
             // ENVOI
             // =====================
-            if (!$mail->send()) {
-                throw new Exception("SMTP Error: " . $mail->ErrorInfo);
-            }
+            $mail->send();
 
         } catch (Exception $e) {
-            throw new \Exception("Erreur envoi email: " . $e->getMessage());
+            throw new \Exception(
+                'Erreur envoi email : ' . $e->getMessage()
+            );
         }
     }
 }
