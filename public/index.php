@@ -14,24 +14,25 @@ echo "====================================\n";
 
 try {
 
+    echo "[OK] Chargement autoload...\n";
+
+    // IMPORTANT (fix principal)
+    require_once __DIR__ . '/../vendor/autoload.php';
+
+    echo "[OK] Autoload chargé\n";
+
     echo "[OK] Chargement bootstrap...\n";
-
     require_once __DIR__ . '/../bootstrap.php';
-
     echo "[OK] bootstrap chargé\n";
 
     echo "[OK] Chargement controller...\n";
-
     require_once __DIR__ . '/../src/Controller/TransactionController.php';
-
     echo "[OK] Controller chargé\n";
 
     $controller = new TransactionController();
-
     echo "[OK] Controller instancié\n";
 
-    echo "\n";
-    echo "REQUEST_METHOD = " . ($_SERVER['REQUEST_METHOD'] ?? 'N/A') . "\n";
+    echo "\nREQUEST_METHOD = " . ($_SERVER['REQUEST_METHOD'] ?? 'N/A') . "\n";
 
     echo "\nPOST RECU :\n";
     print_r($_POST);
@@ -61,20 +62,21 @@ try {
 
                 try {
 
-                    require_once __DIR__ . '/../src/Service/PdfService.php';
-
-                    echo "[OK] PdfService chargé\n";
-
-                    $data = $_POST;
-
-                    echo "[OK] Données PDF :\n";
-                    print_r($data);
+                    echo "[OK] PdfService instanciation\n";
 
                     $pdfService = new PdfService();
 
                     echo "[OK] Objet PdfService créé\n";
 
-                    $pdfService->generate($data);
+                    //  IMPORTANT : PDF attend du HTML, pas un array
+                    $html = "
+                        <h1>TEST PDF</h1>
+                        <pre>" . print_r($_POST, true) . "</pre>
+                    ";
+
+                    echo "[OK] HTML généré\n";
+
+                    $pdfService->generate($html, "test.pdf", true);
 
                     echo "[OK] PDF généré\n";
 
@@ -88,7 +90,6 @@ try {
                     echo $e->getTraceAsString();
 
                     error_log($e);
-
                     exit;
                 }
             }
@@ -102,9 +103,6 @@ try {
 
                 try {
 
-                    require_once __DIR__ . '/../src/Service/PdfService.php';
-                    require_once __DIR__ . '/../src/Service/MailService.php';
-
                     echo "[OK] Services chargés\n";
 
                     $email = trim($_POST['email'] ?? '');
@@ -112,10 +110,7 @@ try {
                     echo "Email destinataire : " . $email . "\n";
 
                     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-
-                        throw new Exception(
-                            "Adresse email invalide : " . $email
-                        );
+                        throw new Exception("Email invalide : " . $email);
                     }
 
                     echo "[OK] Email valide\n";
@@ -124,41 +119,22 @@ try {
 
                     echo "[OK] Génération PDF...\n";
 
-                    $pdfPath = $pdfService->generate(
-                        $_POST,
-                        true
-                    );
+                    $html = "
+                        <h1>FACTURE</h1>
+                        <pre>" . print_r($_POST, true) . "</pre>
+                    ";
 
-                    echo "[OK] PDF généré :\n";
-                    echo $pdfPath . "\n";
+                    $pdfPath = $pdfService->generate($html, "facture.pdf", false);
 
-                    if (!file_exists($pdfPath)) {
-
-                        throw new Exception(
-                            "Le PDF n'existe pas : " . $pdfPath
-                        );
-                    }
-
-                    echo "[OK] Fichier PDF trouvé\n";
-
-                    echo "\nCONFIG SMTP\n";
-
-                    echo "HOST : " . ($_ENV['SMTP_HOST'] ?? 'VIDE') . "\n";
-                    echo "PORT : " . ($_ENV['SMTP_PORT'] ?? 'VIDE') . "\n";
-                    echo "USER : " . ($_ENV['SMTP_USER'] ?? 'VIDE') . "\n";
-                    echo "FROM : " . ($_ENV['SMTP_FROM'] ?? 'VIDE') . "\n";
+                    echo "[OK] PDF généré en mémoire\n";
 
                     $mailService = new MailService();
 
                     echo "[OK] MailService créé\n";
 
-                    $mailService->send(
-                        $email,
-                        $pdfPath
-                    );
+                    $mailService->send($email, $pdfPath);
 
-                    echo "\n";
-                    echo "====================================\n";
+                    echo "\n====================================\n";
                     echo "EMAIL ENVOYE AVEC SUCCES\n";
                     echo "====================================\n";
 
@@ -167,22 +143,17 @@ try {
                     echo "\n[ERREUR EMAIL]\n";
                     echo $e->getMessage() . "\n";
 
-                    echo "\nFichier : ";
-                    echo $e->getFile();
+                    echo "\nFichier : " . $e->getFile();
+                    echo "\nLigne : " . $e->getLine();
 
-                    echo "\nLigne : ";
-                    echo $e->getLine();
-
-                    echo "\n\nTrace complète :\n";
+                    echo "\n\nTrace :\n";
                     echo $e->getTraceAsString();
 
                     error_log($e);
-
                     exit;
                 }
             }
         } else {
-
             echo "[INFO] Aucun action reçu\n";
         }
     }
@@ -195,24 +166,13 @@ try {
 
 } catch (Throwable $e) {
 
-    echo "\n";
-    echo "====================================\n";
+    echo "\n====================================\n";
     echo "ERREUR FATALE\n";
     echo "====================================\n";
 
-    echo $e->getMessage();
-    echo "\n\n";
-
-    echo "Fichier : ";
-    echo $e->getFile();
-
-    echo "\n";
-
-    echo "Ligne : ";
-    echo $e->getLine();
-
-    echo "\n\n";
-
+    echo $e->getMessage() . "\n\n";
+    echo "Fichier : " . $e->getFile() . "\n";
+    echo "Ligne : " . $e->getLine() . "\n\n";
     echo $e->getTraceAsString();
 
     error_log($e);
