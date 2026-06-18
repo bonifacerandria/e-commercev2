@@ -1,30 +1,51 @@
 <?php
 
+namespace App\Service;
+
 use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class PdfService
 {
-    public function generate($data, $returnPath = false)
+    /**
+     * Génère un PDF à partir d'un HTML
+     */
+    public function generate(string $html, string $filename = "document.pdf", bool $download = true)
     {
-        $dompdf = new Dompdf();
+        // 🔥 Options Dompdf (IMPORTANT pour PHP 8.4)
+        $options = new Options();
 
-        ob_start();
-        include __DIR__ . '/../../views/transaction.php';
-        $html = ob_get_clean();
+        $options->set('isRemoteEnabled', true);
 
-        $dompdf->loadHtml($html);
+        // ⚠️ FIX CRITIQUE : désactive HTML5 parser (cause crash PHP 8.4)
+        $options->set('isHtml5ParserEnabled', false);
+
+        // Sécurité / performance
+        $options->set('isPhpEnabled', false);
+        $options->set('defaultFont', 'Arial');
+
+        // Initialisation Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Charger HTML
+        $dompdf->loadHtml($html, 'UTF-8');
+
+        // Format papier
         $dompdf->setPaper('A4', 'portrait');
+
+        // Render PDF
         $dompdf->render();
 
-        $fileName = 'transaction_' . time() . '.pdf';
-        $filePath = __DIR__ . '/../../storage/pdf/' . $fileName;
-
-        file_put_contents($filePath, $dompdf->output());
-
-        if ($returnPath) {
-            return $filePath;
+        // Sortie
+        if ($download) {
+            // Téléchargement navigateur
+            $dompdf->stream($filename, [
+                "Attachment" => true
+            ]);
+            exit;
         }
 
-        $dompdf->stream($fileName);
+        // Retour brut PDF (string)
+        return $dompdf->output();
     }
 }
