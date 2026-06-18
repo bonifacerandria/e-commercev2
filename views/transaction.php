@@ -10,7 +10,7 @@
 <div class="container">
 
     <div class="header">
-        <img src="/assets/logo.png" class="logo">
+        <img src="/assets/image/logo.png" class="logo">
         <h2>Résumé de transaction </h2>
     </div>
 
