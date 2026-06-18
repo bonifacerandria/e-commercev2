@@ -11,7 +11,7 @@
 
     <div class="header">
         <img src="/assets/logo.png" class="logo">
-        <h2>Résumé de transaction</h2>
+        <h2>Résumé de transaction </h2>
     </div>
 
     <table>
@@ -29,7 +29,7 @@
         <input type="email" name="email" placeholder="Email client" required>
 
         <button type="submit" class="btn-orange">
-            Envoyer PDF
+            Envoyer PDF 
         </button>
     </form>
 
